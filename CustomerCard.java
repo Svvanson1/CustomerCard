@@ -8,15 +8,19 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
+//Benjamin Swanson 02/19
+//UMO Store Project
+
 public class CustomerCard {
 	
-  private static SecretKeySpec secretKey;
-  private static byte[] key;
+  	private static SecretKeySpec secretKey;
+  	private static byte[] key;
 	private long customerID;
 	private String customerName;
 	private String cardNumber;
 	private String expirationDate;
 	
+	//Default
 	public CustomerCard() {
 		this.customerID = 0;
 		this.customerName = "John Doe";
@@ -24,6 +28,7 @@ public class CustomerCard {
 		this.expirationDate = "12/99";
 	}
 	
+	//Parameterized
 	public CustomerCard(long cID, String cName, String cNumber, String expDate) {
 		this.customerID = cID;
 		this.customerName = cName;
@@ -75,14 +80,35 @@ public class CustomerCard {
 		CustomerCard.key = key;
 	}
 	
+       public static void setKey(String myKey) {
+	        MessageDigest sha = null;
+	        try {
+	            key = myKey.getBytes("UTF-8");
+	            sha = MessageDigest.getInstance("SHA-1");
+	            key = sha.digest(key);
+	            key = Arrays.copyOf(key, 16);
+	            secretKey = new SecretKeySpec(key, "AES");
+	        }
+	        catch (NoSuchAlgorithmException e) {
+	            e.printStackTrace();
+	        }
+	        catch (UnsupportedEncodingException e) {
+	            e.printStackTrace();
+	        }
+	    }
+	
 	/*
 	 * 
 	 */
+	
+         /*
+	  *----------Card Validation Stuff----------
+	  */
 
 	public String getIssuer(String cardNumber) {
 	//Returns card issuer given card number
 		
-		//Regex matching length and leading digit
+	    //Regex matching length and leading digit
 	    String visa = "4+(\\d{15}|\\d{12})";
 	    String amex = "(34|37)+\\d{13}";
 	    String discover = "6011+\\d{12}";
@@ -97,7 +123,7 @@ public class CustomerCard {
 		  }
 	  
 	  public static boolean validate(String cardNumber){
-      //Returns true if passed in cardNumber is valid
+      	  //Returns true if passed in cardNumber is valid
 	  //Validates using Luhn Algorithm
 	  //https://en.wikipedia.org/wiki/Luhn_algorithm
 		  
@@ -241,54 +267,51 @@ public class CustomerCard {
 	    		return true;
 	    	}
 	    }
-	    
-	    public static void setKey(String myKey)
-	    {
-	        MessageDigest sha = null;
-	        try {
-	            key = myKey.getBytes("UTF-8");
-	            sha = MessageDigest.getInstance("SHA-1");
-	            key = sha.digest(key);
-	            key = Arrays.copyOf(key, 16);
-	            secretKey = new SecretKeySpec(key, "AES");
-	        }
-	        catch (NoSuchAlgorithmException e) {
-	            e.printStackTrace();
-	        }
-	        catch (UnsupportedEncodingException e) {
-	            e.printStackTrace();
-	        }
-	    }
+	
+	    /*
+	    *
+	    */
+	
+	    /*
+	    *----------AES Stuff----------
+	    */
 	 
-	    public static String encrypt(String strToEncrypt, String secret)
-	    {
-	        try
-	        {
+	    public static String encrypt(String strToEncrypt, String secret) {
+	        try {
+		    //Set key to input
 	            setKey(secret);
+		    //Set cipher to AES
 	            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		    //Set cipher to encrypt mode
 	            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+		    //run through cipher, return
 	            return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes("UTF-8")));
 	        }
-	        catch (Exception e)
-	        {
+	        catch (Exception e) {
 	            System.out.println("Error while encrypting: " + e.toString());
 	        }
 	        return null;
 	    }
 	 
-	    public static String decrypt(String strToDecrypt, String secret)
-	    {
-	        try
-	        {
+	    public static String decrypt(String strToDecrypt, String secret) {
+	        try {
+		    //Set key to input
 	            setKey(secret);
+		    //Set cipher to AES
 	            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
+		    //Set cipher to decrypt mode
 	            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+		    //run through cipher, return
 	            return new String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)));
 	        }
-	        catch (Exception e)
-	        {
+	        catch (Exception e) {
 	            System.out.println("Error while decrypting: " + e.toString());
 	        }
 	        return null;
 	    }
+	    
+	    /*
+	    *
+	    */
+	
 }
